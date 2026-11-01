@@ -3,7 +3,7 @@
 > Se requiere una aplicacion en Python con Streamlit el cual pueda manejar el inventario de un pequeño almacena que maneja productos, donde se debe ingresar productos, salida de productos y consulta de prodocutos con librerias de grafico pueda determinar cuantos productos dispongo en almacen. 
 El gráfico muestra el stock absoluto actual de todos los productos del almacén de forma estática
 Para manejar la persistencia de datos se debe utilizar un archivo csv maneje las columnas nombre_producto, cantidad y precio, que maneje los productos, solo responda basándose en los datos reales del CSV
-interpretación A: El usuario interactúa únicamente con formularios tradicionales para ingresar/sacar productos, y usa un chat con Gemini exclusivo para consultar dudas sobre el inventario.
+El usuario interactúa únicamente con formularios tradicionales para ingresar/sacar productos, y usa un chat con Gemini exclusivo para consultar dudas sobre el inventario.
 Para productos existen se debe añadir una opción o botón de "Modificar/Editar Stock asi se genera el ingreso
  
 ## 1. Problema y usuario
