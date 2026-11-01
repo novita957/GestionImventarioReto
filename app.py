@@ -134,21 +134,25 @@ elif menu == "Salida / Modificar Stock":
     with tab1:
       st.subheader("Registrar Retiro o Salida")
       prod_salida = st.selectbox("Seleccione el producto", df["nombre_producto"].tolist(), key="sel_salida")
+      
+      # Mostrar datos actuales del producto seleccionado en salida
+      idx_salida = df[df["nombre_producto"] == prod_salida].index[0]
+      stock_salida_actual = int(df.loc[idx_salida, "cantidad"])
+      precio_salida_actual = float(df.loc[idx_salida, "precio"])
+      st.info(f"📋 **Estado actual**: Stock disponible: **{stock_salida_actual} un.** | Precio: **${precio_salida_actual:,.0f}**")
+
       cant_a_retirar = st.number_input("Cantidad a retirar", min_value=1, step=1, key="cant_retirar")
 
       if st.button("Procesar Salida"):
-        idx = df[df["nombre_producto"] == prod_salida].index[0]
-        stock_actual = int(df.loc[idx, "cantidad"])
-
-        if cant_a_retirar > stock_actual:
+        if cant_a_retirar > stock_salida_actual:
           st.markdown(
               "<p style='color:red;'>❌ No hay stock suficiente para realizar esta salida.</p>",
               unsafe_allow_html=True,
           )
         else:
-          df.loc[idx, "cantidad"] = stock_actual - int(cant_a_retirar)
+          df.loc[idx_salida, "cantidad"] = stock_salida_actual - int(cant_a_retirar)
           guardar_inventario(df)
-          st.success(f"✅ ¡Realizado! Salida registrada con éxito. Stock actual de '{prod_salida}': {df.loc[idx, 'cantidad']} unidades.")
+          st.success(f"✅ ¡Realizado! Salida registrada con éxito. Stock actual de '{prod_salida}': {df.loc[idx_salida, 'cantidad']} unidades.")
 
     with tab2:
       st.subheader("Actualizar Stock o Precio Existente")
@@ -157,6 +161,9 @@ elif menu == "Salida / Modificar Stock":
 
       stock_actual_val = int(df.loc[idx_mod, "cantidad"])
       precio_actual_val = float(df.loc[idx_mod, "precio"])
+
+      # Mostrar datos actuales claramente antes de editar
+      st.info(f"📋 **Datos actuales de '{prod_mod}'** -> Stock existente: **{stock_actual_val} un.** | Precio actual: **${precio_actual_val:,.0f}**")
 
       nueva_cantidad = st.number_input(
           "Nueva cantidad total en almacén", min_value=0, value=stock_actual_val, step=1, key="mod_cant"
@@ -212,7 +219,6 @@ elif menu == "Asistente IA (Gemini)":
                 f"\n\nDatos actuales del inventario:\n{csv_data_string}"
             )
 
-            # Modelo actualizado a models/gemini-3.5-flash-lite
             response = client.models.generate_content(
                 model="models/gemini-3.5-flash-lite",
                 contents=system_instruction + "\n\nPregunta: " + prompt_usuario
