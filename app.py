@@ -212,9 +212,9 @@ elif menu == "Asistente IA (Gemini)":
                 f"\n\nDatos actuales del inventario:\n{csv_data_string}"
             )
 
-            # Modelo actualizado a models/gemini-2.5-flash
+            # Modelo actualizado a models/gemini-3.5-flash-lite
             response = client.models.generate_content(
-                model="models/gemini-2.5-flash",
+                model="models/gemini-3.5-flash-lite",
                 contents=system_instruction + "\n\nPregunta: " + prompt_usuario
             )
 
