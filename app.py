@@ -135,7 +135,6 @@ elif menu == "Salida / Modificar Stock":
       st.subheader("Registrar Retiro o Salida")
       prod_salida = st.selectbox("Seleccione el producto", df["nombre_producto"].tolist(), key="sel_salida")
       
-      # Mostrar datos actuales del producto seleccionado en salida
       idx_salida = df[df["nombre_producto"] == prod_salida].index[0]
       stock_salida_actual = int(df.loc[idx_salida, "cantidad"])
       precio_salida_actual = float(df.loc[idx_salida, "precio"])
@@ -162,14 +161,15 @@ elif menu == "Salida / Modificar Stock":
       stock_actual_val = int(df.loc[idx_mod, "cantidad"])
       precio_actual_val = float(df.loc[idx_mod, "precio"])
 
-      # Mostrar datos actuales claramente antes de editar
+      # Mostrar datos actuales claramente en pantalla
       st.info(f"📋 **Datos actuales de '{prod_mod}'** -> Stock existente: **{stock_actual_val} un.** | Precio actual: **${precio_actual_val:,.0f}**")
 
+      # Campos configurados en 0 por defecto como solicitaste
       nueva_cantidad = st.number_input(
-          "Nueva cantidad total en almacén", min_value=0, value=stock_actual_val, step=1, key="mod_cant"
+          "Nueva cantidad total en almacén", min_value=0, value=0, step=1, key="mod_cant"
       )
       nuevo_precio = st.number_input(
-          "Nuevo precio ($)", min_value=0.0, value=precio_actual_val, step=100.0, key="mod_precio"
+          "Nuevo precio ($)", min_value=0.0, value=0.0, step=100.0, key="mod_precio"
       )
 
       if st.button("Guardar Cambios"):
