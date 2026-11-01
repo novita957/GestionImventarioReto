@@ -20,7 +20,6 @@ def cargar_inventario():
   if os.path.exists(CSV_FILE):
     try:
       df = pd.read_csv(CSV_FILE)
-      # Asegurar columnas esperadas
       for col in COLUMNAS:
         if col not in df.columns:
           df[col] = 0 if col != "nombre_producto" else ""
@@ -53,7 +52,6 @@ menu = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.subheader("🚨 Resumen Crítico (Stock ≤ 5)")
 
-# Filtrar productos con stock menor o igual a 5
 if not df.empty:
   stock_critico = df[df["cantidad"] <= 5]
   if not stock_critico.empty:
@@ -70,16 +68,14 @@ else:
 # --- MÓDULO 1: Inventario y Gráfico Estático ---
 if menu == "Inventario y Gráfico":
   st.title("📊 Consulta de Inventario y Stock Actual")
-  st.write("Visualiza el stock absoluto actual de todos los productos del almacén.")
+  st.write("Visualiza el stock absoluto actual de todos los productos del almacén[cite: 1].")
 
   if df.empty:
     st.warning("El inventario está actualmente vacío. Agrega productos desde el menú lateral.")
   else:
-    # Mostrar tabla de inventario
     st.dataframe(df, use_container_width=True)
 
     st.subheader("Gráfico de Stock Absoluto")
-    # Gráfico estático / interactivo con Plotly
     fig = px.bar(
         df,
         x="nombre_producto",
@@ -94,7 +90,7 @@ if menu == "Inventario y Gráfico":
 # --- MÓDULO 2: Ingreso de Productos ---
 elif menu == "Ingresar Producto":
   st.title("➕ Ingresar Nuevo Producto")
-  st.write("Agrega un nuevo producto al almacén asegurándote de que no esté duplicado.")
+  st.write("Agrega un nuevo producto al almacén asegurándote de que no esté duplicado[cite: 2].")
 
   with st.form("form_ingreso"):
     nombre_input = st.text_input("Nombre del Producto")
@@ -104,7 +100,6 @@ elif menu == "Ingresar Producto":
 
     if submitted:
       nombre_norm = nombre_input.strip()
-      # Validaciones estrictas
       if not nombre_norm:
         st.error("❌ El nombre del producto no puede estar vacío.")
       elif cantidad_input <= 0 or precio_input <= 0:
@@ -113,7 +108,6 @@ elif menu == "Ingresar Producto":
             unsafe_allow_html=True,
         )
       else:
-        # Verificar duplicados (normalizando minúsculas/mayúsculas)
         if not df.empty and any(df["nombre_producto"].str.lower() == nombre_norm.lower()):
           st.markdown(
               "<p style='color:red;'>❌ Error: El producto ya existe en el inventario.</p>",
@@ -125,13 +119,13 @@ elif menu == "Ingresar Producto":
           )
           st.session_state.df_inventario = pd.concat([df, nuevo_registro], ignore_index=True)
           guardar_inventario(st.session_state.df_inventario)
-          st.success(f"✅ ¡Producto '{nombre_norm}' ingresado exitosamente!")
-          st.rerun()
+          # Mensaje claro de realizado para el ingreso
+          st.success(f"✅ ¡Realizado! El producto '{nombre_norm}' fue ingresado exitosamente con {cantidad_input} unidades.")
 
 # --- MÓDULO 3: Salida y Modificación de Stock ---
 elif menu == "Salida / Modificar Stock":
   st.title("🔄 Salida y Modificación de Stock")
-  st.write("Registra salidas de productos o modifica el stock y precio de productos existentes.")
+  st.write("Registra salidas de productos o modifica el stock y precio de productos existentes[cite: 2].")
 
   if df.empty:
     st.warning("No hay productos registrados en el inventario.")
@@ -155,8 +149,8 @@ elif menu == "Salida / Modificar Stock":
         else:
           df.loc[idx, "cantidad"] = stock_actual - int(cant_a_retirar)
           guardar_inventario(df)
-          st.success(f"✅ Salida exitosa. Stock actualizado de '{prod_salida}': {df.loc[idx, 'cantidad']} unidades.")
-          st.rerun()
+          # Mensaje claro de realizado para la salida
+          st.success(f"✅ ¡Realizado! Salida registrada con éxito. Stock actual de '{prod_salida}': {df.loc[idx, 'cantidad']} unidades.")
 
     with tab2:
       st.subheader("Actualizar Stock o Precio Existente")
@@ -183,15 +177,14 @@ elif menu == "Salida / Modificar Stock":
           df.loc[idx_mod, "cantidad"] = int(nueva_cantidad)
           df.loc[idx_mod, "precio"] = float(nuevo_precio)
           guardar_inventario(df)
-          st.success(f"✅ Producto '{prod_mod}' actualizado correctamente.")
-          st.rerun()
+          # Mensaje claro de realizado para la modificación
+          st.success(f"✅ ¡Realizado! El producto '{prod_mod}' ha sido actualizado correctamente.")
 
 # --- MÓDULO 4: Asistente IA (Gemini) ---
 elif menu == "Asistente IA (Gemini)":
   st.title("💬 Asistente de Consulta de Inventario (Gemini)")
-  st.write("Haz preguntas sobre el stock actual de tu almacén de forma natural.")
+  st.write("Haz preguntas sobre el stock actual de tu almacén de forma natural[cite: 2].")
 
-  # Inicializar historial de chat
   if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -207,29 +200,24 @@ elif menu == "Asistente IA (Gemini)":
     with st.chat_message("assistant"):
       with st.spinner("Consultando el inventario..."):
         try:
-          # Verificar secreto de API
           if "GEMINI_API_KEY" not in st.secrets:
-            st.error("⚠️ Falta configurar `GEMINI_API_KEY` en los secretos de Streamlit.")
+            st.error("⚠️ Falta configurar `GEMINI_API_KEY` en los secretos de Streamlit[cite: 2].")
           else:
-            # Inicializar cliente con el SDK google-genai moderno
+            from google import genai
+            
             client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-
-            # Preparar contexto con los datos reales del CSV
             csv_data_string = df.to_csv(index=False)
             system_instruction = (
-                "Eres un asistente amigable y útil para una vendedora de un pequeño almacén. "
+                "Eres un asistente amigable y útil para una vendedora de un pequeño almacén[cite: 2]. "
                 "Tu único trabajo es responder preguntas sobre el inventario basándote EXCLUSIVAMENTE "
-                "en los datos reales del archivo CSV proporcionados a continuación. "
+                "en los datos reales del archivo CSV proporcionados a continuación[cite: 1, 2]. "
                 "Si te preguntan algo fuera del inventario, indica amablemente que solo puedes responder dudas sobre el stock actual. "
                 f"\n\nDatos actuales del inventario:\n{csv_data_string}"
             )
 
-            # Usar el modelo gemini-2.5-flash o gemini-1.5-flash
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=[
-                    {"role": "user", "parts": [{"text": system_instruction + "\n\nPregunta: " + prompt_usuario}]}
-                ],
+                model="gemini-1.5-flash",
+                contents=system_instruction + "\n\nPregunta: " + prompt_usuario
             )
 
             respuesta_ia = response.text
@@ -237,9 +225,11 @@ elif menu == "Asistente IA (Gemini)":
             st.session_state.messages.append({"role": "assistant", "content": respuesta_ia})
 
         except Exception as e:
-            error_msg = (
-                "Lo siento, ha ocurrido un inconveniente al consultar con el asistente. "
-                "Por favor, verifica tu clave de API o intenta de nuevo en unos momentos."
+          error_str = str(e).lower()
+          if "quota" in error_str or "resource_exhausted" in error_str or "429" in error_str:
+            st.warning(
+                "⚠️ **Límite diario de Gemini alcanzado:** Has superado temporalmente las consultas gratuitas permitidas por Google. "
+                "Los formularios y el inventario siguen funcionando con normalidad."
             )
-            st.error(error_msg)
-            # Opcional para depurar en local: st.text(f"Detalle: {e}")
+          else:
+            st.error(f"❌ Ocurrió un inconveniente al consultar con el asistente: {e}")
